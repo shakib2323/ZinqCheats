@@ -1,0 +1,15 @@
+{
+  "name": "SecureID Ultra",
+  "short_name": "SecureID",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#05080f",
+  "theme_color": "#00f2ff",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2092/2092663.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
