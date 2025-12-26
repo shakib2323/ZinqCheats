@@ -14,19 +14,6 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <style>
-        #privacy-shield {
-    display: none; /* Hidden by default */
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: black;
-    z-index: 9999;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
-    </style>
 </head>
 <body onload="initApp()">
 
@@ -66,8 +53,6 @@
             <button class="back-btn" onclick="showPage('landing-page'); playSound('click')"><i class="fas fa-arrow-left"></i> BACK</button>
             <h3 style="margin-top:20px;">Register Email</h3>
             <input type="email" id="regEmail" placeholder="Email Address">
-            <input type="password" id="regPassword" placeholder="Create Password">
-
             <button class="btn btn-neon" onclick="handleOTP(); playSound('click')" id="otpBtn" style="width:100%">
                 <span>Get OTP</span><div class="loader" id="regLoad"></div>
             </button>
@@ -82,14 +67,8 @@
         <div class="glass-card">
             <button class="back-btn" onclick="showPage('landing-page'); playSound('click')"><i class="fas fa-arrow-left"></i> BACK</button>
             <h3 style="margin-top:20px;">Secure Login</h3>
-            <input type="password" id="loginPin" placeholder="How Are U Today!">
-            <input type="text" id="loginId" placeholder="ID:xxx-xxx-xxx">
-            
-
-            <input type="password" id="loginPassword" placeholder="Account Password">
-            <button class="btn btn-ghost" onclick="resetPassword()">Forgot Password?</button>
-
-            
+            <input type="password" id="loginPin" placeholder="Secret PIN (Optional)">
+            <input type="text" id="loginId" placeholder="xxx-xxx-xxx">
             <button class="btn btn-neon" onclick="doAdvancedLogin(); playSound('click')" style="width:100%">Login Now</button>
         </div>
     </div>
@@ -213,8 +192,7 @@
     const KILL_CODE = "#WIPE_DEVICE";
     const FAKE_PIN = "0000"; 
     const ADMIN_EMAIL = "shakibscrd@gmail.com";
-    const BANNED_LIST = ["bomb", "kill", "drug", "hack", "scam", "weapon", "terror", "abuse", "suicide", "murder", "harm", "illegal","Shahzeb","Shahzeb Choudhary"];
-    const SESSION_TTL = 60 * 1000; // 1 minute heartbeat
+    const BANNED_LIST = ["bomb", "kill", "drug", "hack", "scam", "weapon", "terror", "abuse", "suicide", "murder", "harm", "illegal","Shahzeb"];
 
     // NEW INIT FUNCTION FOR SPLASH
     function initApp() {
@@ -503,54 +481,14 @@
             await db.ref('id_to_email/' + idKey).set(userEmail);
         }
         localStorage.setItem('ghost_email', userEmail);
-        const pass = document.getElementById("regPassword").value;
-if (!pass || pass.length < 6) {
-    alert("Password must be at least 6 characters");
-    return;
-}
-
-const passHash = CryptoJS.SHA256(pass + SALT).toString();
-await db.ref("passwords/" + idKey).set(passHash);
-
         doLoginWithId(myUid);
     }
 
-    // async function doLogin() {
-    //     const id = document.getElementById('loginId').value;
-    //     if (await checkBanStatus(id)) return;
-    //     doLoginWithId(id);
-    //     startSessionLock();
-
-    // }
-
     async function doLogin() {
-    const id = document.getElementById('loginId').value;
-    const pass = document.getElementById('loginPassword').value;
-
-    if (!id || !pass) {
-        alert("ID and password required");
-        return;
+        const id = document.getElementById('loginId').value;
+        if (await checkBanStatus(id)) return;
+        doLoginWithId(id);
     }
-
-    if (await checkBanStatus(id)) return;
-
-    const idKey = id.replace(/-/g,"");
-    const snap = await db.ref("passwords/" + idKey).once("value");
-
-    if (!snap.exists()) {
-        alert("Password not set for this ID");
-        return;
-    }
-
-    const hash = CryptoJS.SHA256(pass + SALT).toString();
-    if (snap.val() !== hash) {
-        alert("Invalid password");
-        return;
-    }
-
-    doLoginWithId(id);
-}
-
 
     function doLoginWithId(id) {
         myUid = id; localStorage.setItem('ghost_id', id);
@@ -559,73 +497,22 @@ await db.ref("passwords/" + idKey).set(passHash);
         listenForBroadcast();
         showPage('dash-page');
     }
-   
-    async function resetPassword() {
-    const email = prompt("Enter your registered email:");
-    if (!email) return;
 
-    const eKey = btoa(email).replace(/=/g,"");
-    const snap = await db.ref("users/" + eKey).once("value");
-
-    if (!snap.exists()) {
-        alert("Email not found");
-        return;
+    function startGhost(type) {
+        chatType = type;
+        partnerUid = document.getElementById('targetId').value;
+        if(!partnerUid) return;
+        if(type === 'private') {
+            db.ref('presence/' + myUid).set(getRoom());
+            db.ref('presence/' + partnerUid).on('value', s => {
+                partnerActive = (s.val() === getRoom());
+                if(s.val() === getRoom()) openChatPage("Secure Private");
+            });
+        } else {
+            openChatPage("Group Chat");
+        }
     }
 
-    const id = snap.val();
-    const newPass = Math.random().toString(36).slice(-8);
-    const hash = CryptoJS.SHA256(newPass + SALT).toString();
-
-    await db.ref("passwords/" + id.replace(/-/g,"")).set(hash);
-
-    emailjs.send("service_ruuzmdf", "template_xxcgwad", {
-        to_email: email,
-        otp_code: `Your new password: ${newPass}`
-    });
-
-    alert("New password sent to email");
-}
-
-    // function startGhost(type) {
-    //     chatType = type;
-    //     partnerUid = document.getElementById('targetId').value;
-    //     if(!partnerUid) return;
-    //     if(type === 'private') {
-    //         db.ref('presence/' + myUid).set(getRoom());
-    //         db.ref('presence/' + partnerUid).on('value', s => {
-    //             partnerActive = (s.val() === getRoom());
-    //             if(s.val() === getRoom()) openChatPage("Secure Private");
-    //         });
-    //     } else {
-    //         openChatPage("Group Chat");
-    //     }
-    // }
-function startGhost(type) {
-    chatType = type;
-    partnerUid = document.getElementById('targetId').value;
-    if(!partnerUid) return alert("Please enter a Target ID");
-
-    const room = getRoom();
-    if(type === 'private') {
-        // Set my presence
-        db.ref('presence/' + myUid).set(room);
-        
-        // Immediately move to chat page so the screen isn't "stuck"
-        openChatPage("Connecting..."); 
-
-        db.ref('presence/' + partnerUid).on('value', s => {
-            if(s.val() === room) {
-                document.getElementById('chat-title').innerText = "Secure Private (Connected)";
-                partnerActive = true;
-            } else {
-                document.getElementById('chat-title').innerText = "Waiting for partner...";
-                partnerActive = false;
-            }
-        });
-    } else {
-        openChatPage("Group Chat");
-    }
-}
     function openChatPage(title) {
         document.getElementById('chat-title').innerText = title;
         showPage('chat-page');
@@ -703,44 +590,6 @@ function startGhost(type) {
     window.addEventListener('keyup', (e) => { if (e.key === 'PrintScreen') triggerFlashbang(); });
     window.onblur = () => { document.getElementById('privacy-shield').style.display='flex'; playSound('alert'); }
     window.onfocus = () => document.getElementById('privacy-shield').style.display='none';
-
-    function getDeviceId() {
-    let id = localStorage.getItem("device_id");
-    if (!id) {
-        id = CryptoJS.SHA256(navigator.userAgent + Date.now()).toString();
-        localStorage.setItem("device_id", id);
-    }
-    return id;
-}
-
-function startSessionLock() {
-    const idKey = myUid.replace(/-/g,"");
-    const deviceId = getDeviceId();
-
-    const ref = db.ref(`sessions/${idKey}`);
-
-    ref.set({
-        device: deviceId,
-        lastSeen: Date.now()
-    });
-
-    setInterval(() => {
-        ref.once("value").then(snap => {
-            if (!snap.exists()) return logout();
-            const data = snap.val();
-            if (data.device !== deviceId) {
-                alert("This ID is logged in from another device.");
-                logout();
-            } else {
-                ref.update({ lastSeen: Date.now() });
-            }
-        });
-    }, SESSION_TTL);
-}
-
 </script>
 </body>
-
 </html>
-
-
