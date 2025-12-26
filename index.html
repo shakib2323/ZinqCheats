@@ -586,21 +586,46 @@ await db.ref("passwords/" + idKey).set(passHash);
     alert("New password sent to email");
 }
 
-    function startGhost(type) {
-        chatType = type;
-        partnerUid = document.getElementById('targetId').value;
-        if(!partnerUid) return;
-        if(type === 'private') {
-            db.ref('presence/' + myUid).set(getRoom());
-            db.ref('presence/' + partnerUid).on('value', s => {
-                partnerActive = (s.val() === getRoom());
-                if(s.val() === getRoom()) openChatPage("Secure Private");
-            });
-        } else {
-            openChatPage("Group Chat");
-        }
-    }
+    // function startGhost(type) {
+    //     chatType = type;
+    //     partnerUid = document.getElementById('targetId').value;
+    //     if(!partnerUid) return;
+    //     if(type === 'private') {
+    //         db.ref('presence/' + myUid).set(getRoom());
+    //         db.ref('presence/' + partnerUid).on('value', s => {
+    //             partnerActive = (s.val() === getRoom());
+    //             if(s.val() === getRoom()) openChatPage("Secure Private");
+    //         });
+    //     } else {
+    //         openChatPage("Group Chat");
+    //     }
+    // }
+function startGhost(type) {
+    chatType = type;
+    partnerUid = document.getElementById('targetId').value;
+    if(!partnerUid) return alert("Please enter a Target ID");
 
+    const room = getRoom();
+    if(type === 'private') {
+        // Set my presence
+        db.ref('presence/' + myUid).set(room);
+        
+        // Immediately move to chat page so the screen isn't "stuck"
+        openChatPage("Connecting..."); 
+
+        db.ref('presence/' + partnerUid).on('value', s => {
+            if(s.val() === room) {
+                document.getElementById('chat-title').innerText = "Secure Private (Connected)";
+                partnerActive = true;
+            } else {
+                document.getElementById('chat-title').innerText = "Waiting for partner...";
+                partnerActive = false;
+            }
+        });
+    } else {
+        openChatPage("Group Chat");
+    }
+}
     function openChatPage(title) {
         document.getElementById('chat-title').innerText = title;
         showPage('chat-page');
@@ -717,4 +742,5 @@ function startSessionLock() {
 </body>
 
 </html>
+
 
