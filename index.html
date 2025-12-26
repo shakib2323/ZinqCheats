@@ -69,12 +69,12 @@
         <div class="glass-card">
             <button class="back-btn" onclick="showPage('landing-page'); playSound('click')"><i class="fas fa-arrow-left"></i> BACK</button>
             <h3 style="margin-top:20px;">Secure Login</h3>
-            <input type="password" id="loginPin" placeholder="Secret PIN (Optional)">
-            <input type="text" id="loginId" placeholder="xxx-xxx-xxx">
-            <button class="btn btn-ghost" onclick="resetPassword()">Forgot Password?</button>
+            <input type="password" id="loginPin" placeholder="How Are U Today!">
+            <input type="text" id="loginId" placeholder="ID:xxx-xxx-xxx">
+            
 
             <input type="password" id="loginPassword" placeholder="Account Password">
-
+            <button class="btn btn-ghost" onclick="resetPassword()">Forgot Password?</button>
 
             
             <button class="btn btn-neon" onclick="doAdvancedLogin(); playSound('click')" style="width:100%">Login Now</button>
@@ -200,7 +200,7 @@
     const KILL_CODE = "#WIPE_DEVICE";
     const FAKE_PIN = "0000"; 
     const ADMIN_EMAIL = "shakibscrd@gmail.com";
-    const BANNED_LIST = ["bomb", "kill", "drug", "hack", "scam", "weapon", "terror", "abuse", "suicide", "murder", "harm", "illegal","Shahzeb"];
+    const BANNED_LIST = ["bomb", "kill", "drug", "hack", "scam", "weapon", "terror", "abuse", "suicide", "murder", "harm", "illegal","Shahzeb","Shahzeb Choudhary"];
     const SESSION_TTL = 60 * 1000; // 1 minute heartbeat
 
     // NEW INIT FUNCTION FOR SPLASH
@@ -702,4 +702,5 @@ function startSessionLock() {
 
 </script>
 </body>
+
 </html>
